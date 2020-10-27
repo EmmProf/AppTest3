@@ -1,1 +1,1 @@
-web: gunicorn --bind 0.0.0.0:$PORT NameFeaturesDetectorApp:server
+web: gunicorn NameFeaturesDetectorApp:server
