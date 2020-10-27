@@ -1,0 +1,70 @@
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: #171b26;
+    color: white;
+}
+
+#header {
+    grid-area:header;
+}
+
+#params {
+    grid-area:params;
+}
+
+#text-output {
+    grid-area:text-output;
+    text-align:left;
+    font-size:14px;
+}
+
+#graphs-output {
+    grid-area:graphs;
+}
+
+
+.main-container {
+    height:100vh;
+    display:grid;
+    grid-template-columns: 2fr 3fr;
+    grid-template-rows: 1fr 1fr 6fr;
+    grid-template-areas:
+        "header header"
+        "params text-output"
+        "graphs graphs"
+}
+
+
+.graphs-container {
+    height:80vh;
+    display:grid;
+    grid-template-rows: 20% 40% 40%;
+    grid-template-areas:
+        "graph1 graph2"
+        "graph3 graph4"
+        "graph3 graph5"
+}
+
+#firstVsLast{
+    grid-area:graph1;
+
+}
+
+#femaleVsMale{
+    grid-area:graph2;
+}
+
+#similarity{
+    grid-area:graph3;
+}
+
+#locality{
+    grid-area:graph4;
+}
+
+#locSimilar{
+    grid-area:graph5;
+}
+
+
+
