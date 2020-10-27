@@ -32,8 +32,8 @@ classes = [classe.capitalize() if "twi" not in classe else "Twi" for classe in c
 
 repr_train = np.load("ressources/repr_train.npy")
 repr_test = np.load("ressources/repr_test.npy")
-namesFeaturesDetector = load_model("ressources/namesFeaturesDetector")
-representation = load_model("ressources/namesRepresentation")
+namesFeaturesDetector = load_model("ressources/namesFeaturesDetector.h5")
+representation = load_model("ressources/namesRepresentation.h5")
 
 
 def predictionPipeline(name,classes,tokenizer,model,representation,inputLen):
@@ -54,6 +54,7 @@ def predictionPipeline(name,classes,tokenizer,model,representation,inputLen):
     namesFeaturesDict (dict): a dictionnary with predicted features: locality, firstVsLastName, femaleVsMale
   '''
   name = name.lower()
+
 
   # tokenize names with the tokenizer
   sequence = tokenizer.texts_to_sequences([name])
