@@ -1,4 +1,6 @@
 venv
+namesFeaturesDetector
+namesRepresentation
 *.pyc
 .DS_Store
 .env
