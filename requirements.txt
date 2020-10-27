@@ -1,4 +1,4 @@
-﻿Brotli==1.0.9
+Brotli==1.0.9
 click==7.1.2
 dash==1.16.3
 dash-core-components==1.12.1
@@ -25,3 +25,4 @@ six==1.15.0
 sklearn==0.0
 threadpoolctl==2.1.0
 Werkzeug==1.0.1
+tensorflow==2.3.0
