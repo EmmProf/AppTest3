@@ -1,3 +1,4 @@
+
 import pickle
 import numpy as np
 import pandas as pd
@@ -8,8 +9,12 @@ from sklearn.model_selection import train_test_split
 from tensorflow.keras.models import load_model, Model
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 
+#config for plotly to not show the mode bar (zoom etc...)
 config = {'displayModeBar': False}
 
+#---------LOAD DATA AND MODEL------------------------------------
+
+#load needed data
 with open("ressources/names.txt","r") as f:
   names = f.readlines()
 names = [name.replace('\n',"") for name in names]
@@ -21,7 +26,9 @@ features = np.load("ressources/features.npy",allow_pickle=True)
 features = [[feat.capitalize() if "twi" not in feat else "Twi" for feat in feature] for feature in features]
 
 names_train, names_test, features_train, features_test = train_test_split(names,features,random_state = 50, test_size=0.1,)
+
 namesVsFeatures = dict(zip(names,features))
+
 with open('ressources/tokenizer.pickle', 'rb') as handle:
     tk = pickle.load(handle)
 with open("ressources/classes.txt","r") as f:
@@ -32,16 +39,15 @@ classes = [classe.capitalize() if "twi" not in classe else "Twi" for classe in c
 
 repr_train = np.load("ressources/repr_train.npy")
 repr_test = np.load("ressources/repr_test.npy")
-namesFeaturesDetector = load_model("ressources/namesFeaturesDetector.h5")
-representation = load_model("ressources/namesRepresentation.h5")
+namesFeaturesDetector = load_model("ressources/nameFeaturesDetector.h5")
+representation = load_model("ressources/nameRepresentation.h5")
 
-
+#this function is also available in utils.py
 def predictionPipeline(name,classes,tokenizer,model,representation,inputLen):
   '''
   A function taking as input a name and building blocks of a prediction pipeline, 
   and returning as a dictionnary predicted features: locality, firstVsLastName, femaleVsMale,
   as well as an embedding vector.
-
   Parameters:
     name (str): a name to be processed.
     classes (list(str)): a list of the names of the classes predicted by the model.
@@ -49,7 +55,6 @@ def predictionPipeline(name,classes,tokenizer,model,representation,inputLen):
     model (keras model): a trained model for names features inference.
     representation (keras model): a model output embeddings for the name.
     inputLen (int): the model's inputs length.
-
   Returns:
     namesFeaturesDict (dict): a dictionnary with predicted features: locality, firstVsLastName, femaleVsMale
   '''
@@ -77,6 +82,8 @@ def predictionPipeline(name,classes,tokenizer,model,representation,inputLen):
 
   return nameFeaturesDict
 
+#-----------DEFINE DASH APP-------------------------------------------
+
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
@@ -84,12 +91,20 @@ from dash.dependencies import Input, Output, State
 
 import plotly.graph_objects as go
 
+
 app = dash.Dash(__name__)
 
+#for Heroku deployment
 server = app.server
 
+#---Define layout-----------------------------------
+
+graphLayout = go.Layout(template="plotly_dark",xaxis=dict(tickmode="linear",showgrid=False,visible=False),
+                       paper_bgcolor='rgba(0,0,0,0)',plot_bgcolor='rgba(0,0,0,0)')
+#look at the ids of the Div to understand their purposes
 app.layout = html.Div(
     [
+        html.Title("NameFeaturesDetector"),
         html.Div(
             [
                 html.P("Names Features Detector",style = {"padding-left":"2%","font-size":"18px"})
@@ -119,11 +134,11 @@ app.layout = html.Div(
             [
                 html.Div(
                     [
-                        dcc.Graph(id="firstVsLast",config=config),
-                        dcc.Graph(id="femaleVsMale",config=config),
-                        dcc.Graph(id="similarity",config=config),
-                        dcc.Graph(id="locality",config=config),
-                        dcc.Graph(id="locSimilar",config=config)
+                        dcc.Graph(id="firstVsLast",config=config,figure=go.Figure(layout=graphLayout)),
+                        dcc.Graph(id="femaleVsMale",config=config,figure=go.Figure(layout=graphLayout)),
+                        dcc.Graph(id="similarity",config=config,figure=go.Figure(layout=graphLayout)),
+                        dcc.Graph(id="locality",config=config,figure=go.Figure(layout=graphLayout)),
+                        dcc.Graph(id="locSimilar",config=config,figure=go.Figure(layout=graphLayout))
                     ],
                     className = "graphs-container",
                 )
@@ -135,6 +150,11 @@ app.layout = html.Div(
 
 )
 
+#------Define callbacks----------------------
+
+#this callback gets as input the run button event or the pick random button event
+#it will then ouput the locality of the name, its gender, if it is a first or last name
+#and similar names based on the similarity measure defined via last layer embeddings.
 
 @app.callback(
     [Output("firstVsLast","figure"),
@@ -152,16 +172,18 @@ app.layout = html.Div(
 
 def update_graphs(n_clicks1,n_clicks2,name):
 
+    #this is to understand which button has been clicked
     ctx = dash.callback_context
-
     button_id = ctx.triggered[0]['prop_id'].split('.')[0]
 
+    #if the "pick random" button was clicked then pick a name at random in the test set
     if button_id == "pickrandom-button":
       rndIndex = np.random.randint(0,len(names_test))
       name = names_test[rndIndex]
     
     name = name.lower()
 
+    #get the data from the prediction pipeline
     data = predictionPipeline(name,classes,tk,namesFeaturesDetector,representation,inputLen=12)
     
     firstVsLast = pd.Series(data["firstVsLastName"]).sort_values(ascending=True)
@@ -209,6 +231,7 @@ def update_graphs(n_clicks1,n_clicks2,name):
     fig4 = go.Figure([localityBar]).update_layout(margin=dict(t=30,b=10))
     fig5 = go.Figure([locSimilarBar]).update_layout(margin=dict(t=30,b=50))
     
+    #titles of the barplots
     titles = ["Is it a first name or a last name ?",
               "Is it a female or male name ?",
               "What are the most similar names in the train set ?",
@@ -219,7 +242,7 @@ def update_graphs(n_clicks1,n_clicks2,name):
         fig.update_layout(title_text=title,template="plotly_dark",xaxis=dict(tickmode="linear",showgrid=False,visible=False),
                        paper_bgcolor='rgba(0,0,0,0)',plot_bgcolor='rgba(0,0,0,0)')
                        
-    #message to output
+    #message to output (this could maybe done more nicely)
     
     #capitalize name
     name = name.capitalize()
@@ -253,11 +276,7 @@ def update_graphs(n_clicks1,n_clicks2,name):
         mess = name + " was in the test dataset. It can be " + postmess
     else: mess = name + " was not in the train nor in the test dataset."
         
-        
-        
     return fig1,fig2,fig3,fig4,fig5,name,mess
-
-
 
 if __name__ == '__main__':
     app.run_server(debug=False)
