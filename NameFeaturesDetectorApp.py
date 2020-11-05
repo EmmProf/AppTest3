@@ -104,6 +104,7 @@ graphLayout = go.Layout(template="plotly_dark",xaxis=dict(tickmode="linear",show
 #look at the ids of the Div to understand their purposes
 app.layout = html.Div(
     [
+        html.Title("NameFeaturesDetector"),
         html.Div(
             [
                 html.P("Names Features Detector",style = {"padding-left":"2%","font-size":"18px"})
