@@ -101,13 +101,15 @@ server = app.server
 
 graphLayout = go.Layout(template="plotly_dark",xaxis=dict(tickmode="linear",showgrid=False,visible=False),
                        paper_bgcolor='rgba(0,0,0,0)',plot_bgcolor='rgba(0,0,0,0)')
+
+buttonStyle = {"margin":"1%","background-color": "rgba(0,0,0,0)","border-color":"white", "color":"white", "border-radius":"25px"}
 #look at the ids of the Div to understand their purposes
 app.layout = html.Div(
     [
         html.Title("NameFeaturesDetector"),
         html.Div(
             [
-                html.P("Names Features Detector",style = {"padding-left":"2%","font-size":"18px"})
+                html.P("Name Features Detector",style = {"padding-left":"2%","font-size":"18px"})
             ],
             id = "header"
         ),
@@ -116,8 +118,8 @@ app.layout = html.Div(
                 html.Div(
                     ["Enter a Name: ",
                      dcc.Input(value="John",type="text",id="name"),
-                     html.Button(id='run-button', n_clicks=0, children='Run',style={"margin":"1%"}),
-                     html.Button(id='pickrandom-button', n_clicks=0, children='Pick Random')
+                     html.Button(id='run-button', n_clicks=0, children='Run',style = buttonStyle),
+                     html.Button(id='pickrandom-button', n_clicks=0, children='Pick Random', style = buttonStyle)
                     ],
                     style = {"padding-left":"5%","font-size":"14px"}
                 )
@@ -130,6 +132,16 @@ app.layout = html.Div(
             ],
             id = "text-output"
         ),
+        html.Div(
+            [
+             html.P([
+                     "The model is a multi-label model, a name can be both for man or woman. Scores do not sum up to 1. Refer to the",
+                     html.A(" source code.",href="https://github.com/EmmProf/NameFeaturesDetector",style={"color":"grey"})
+                     ]),
+             
+            ],
+            id = "read-me"
+            ),
         html.Div(
             [
                 html.Div(
@@ -205,23 +217,23 @@ def update_graphs(n_clicks1,n_clicks2,name):
     
     colorscale = "Blugrn"
     #figures
-    localityBar = go.Bar(y=locality.index,x=locality.values,text=locality.values.round(2)*100,textposition='outside',textfont_color="white",
+    localityBar = go.Bar(y=locality.index,x=locality.values,text=locality.values.round(2)*100,
                          orientation="h",showlegend=False,marker={'color': locality.values,'colorscale': colorscale}
                          )
 
-    femaleVsMaleBar = go.Bar(y=femaleVsMale.index,x=femaleVsMale.values,text=femaleVsMale.values.round(2)*100,textposition='outside',textfont_color="white",
+    femaleVsMaleBar = go.Bar(y=femaleVsMale.index,x=femaleVsMale.values,text=femaleVsMale.values.round(2)*100,
                              orientation="h",showlegend=False,marker={'color': femaleVsMale.values,'colorscale': colorscale}, 
                              )
 
-    firstVsLastBar = go.Bar(y=firstVsLast.index,x=firstVsLast.values,text=firstVsLast.values.round(2)*100,textposition='outside',textfont_color="white",
+    firstVsLastBar = go.Bar(y=firstVsLast.index,x=firstVsLast.values,text=firstVsLast.values.round(2)*100,
                             orientation="h",showlegend=False,marker={'color': firstVsLast.values,'colorscale': colorscale}
                            )
 
-    similarityBar = go.Bar(y=similarity_train.index,x=similarity_train.values,
+    similarityBar = go.Bar(y=similarity_train.index,x=similarity_train.values.round(2)*100,
                            orientation="h",showlegend=False,text=text,marker={'color': similarity_train.values,'colorscale': colorscale}
                            )
 
-    locSimilarBar = go.Bar(y=locSimilar.index,x=locSimilar.values,textposition='outside',
+    locSimilarBar = go.Bar(y=locSimilar.index,x=locSimilar.values.round(2)*100,
                            orientation="h",showlegend=False,text=locSimilar.values,marker={'color': locSimilar.values,'colorscale': colorscale}
                            )
 
@@ -267,7 +279,8 @@ def update_graphs(n_clicks1,n_clicks2,name):
         
         locas = [feat for feat in feats if feat not in ["Firstname","Lastname","Male","Female","Last"]]
         
-        postmess += " possible localities are  " + ", ".join(locas[:-1]) + ", "*(len(locas) == 2) + locas[-1] + "."
+        if len(locas) == 1: postmess += " possible localities are  " + locas[0] + "."
+        else: postmess += " possible localities are  " + ", ".join(locas[:-1])  + ", " + locas[-1] + "."
     
     
     if name in names_train: 
